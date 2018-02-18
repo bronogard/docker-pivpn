@@ -1,20 +1,39 @@
-FROM resin/rpi-raspbian
+FROM arm32v7/debian:latest
+#FROM resin/rpi-raspbian:stretch
 
-MAINTAINER InnovativeInventor
+LABEL maintainer="bronogard" \
+	url="https://github.com/bronogard/docker-pivpn"
 
-RUN apt-get update
-RUN apt-get install curl -y
-RUN apt-get install software-properties-common -y
-RUN apt-get install debconf-utils
-RUN apt-get install git -y
-RUN apt-get install nano
-RUN apt-get install whiptail -y
-RUN apt-get install openvpn -y
-RUN apt-get install dhcpcd5 -y
-RUN apt-get install dnsutils -y
-RUN apt-get install expect -y
-RUN apt-get install whiptail
-RUN mkdir /home/pivpn
-RUN curl -L https://install.pivpn.io -o install.sh
-RUN useradd pivpn
+RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y \
+#        apt-utils \
+        curl \
+	debconf-utils \
+	dhcpcd5 \
+	dnsutils \
+#        expect \
+        git \
+#        grep \
+#        iptables-persistent \
+#        net-tools \
+	openvpn \
+#        software-properties-common \
+        sudo \
+#        tar \
+        wget \
+	whiptail \
+	&& rm -rf /var/cache/apt/archives /var/lib/apt/lists
+
+RUN adduser --disabled-password --gecos '' pivpn
+
+USER pivpn:pivpn
+
+WORKDIR /home/pivpn
+
+RUN curl -L https://install.pivpn.io -o install.sh && chmod +x install.sh
+
 EXPOSE 1194
+
+VOLUME ["/dev/random", "/home/pivpn/ovpns"]
+
+ENTRYPOINT ["/bin/bash"]
+
